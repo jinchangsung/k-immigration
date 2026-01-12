@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>K-Immigration Online</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+      /* Custom scrollbar for chat */
+      .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+      }
+      .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+      }
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+      body {
+        font-family: 'Noto Sans KR', sans-serif;
+      }
+
+      /* Styles for Dynamic Content (Tables, etc.) */
+      /* !important used to override inline styles from HWP/Excel pastes */
+      .dynamic-content table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        margin: 1rem 0 !important;
+        font-size: 0.875rem !important;
+        border: 1px solid #e2e8f0 !important;
+        background-color: transparent !important;
+      }
+      .dynamic-content th {
+        background-color: #f8fafc !important;
+        color: #334155 !important;
+        font-weight: 700 !important;
+        padding: 0.75rem !important;
+        border: 1px solid #e2e8f0 !important;
+        text-align: left !important;
+        white-space: nowrap !important;
+      }
+      .dynamic-content td {
+        padding: 0.75rem !important;
+        border: 1px solid #e2e8f0 !important;
+        color: #475569 !important;
+        vertical-align: top !important;
+        background-color: transparent !important;
+      }
+      /* Stripe effect */
+      .dynamic-content tr:nth-child(even) td {
+        background-color: #fcfcfc !important;
+      }
+      
+      .dynamic-content p {
+        margin-bottom: 0.5rem;
+        line-height: 1.6;
+      }
+      .dynamic-content ul {
+        list-style-type: disc;
+        padding-left: 1.5rem;
+        margin-bottom: 1rem;
+      }
+      .dynamic-content ol {
+        list-style-type: decimal;
+        padding-left: 1.5rem;
+        margin-bottom: 1rem;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "@google/genai": "https://esm.sh/@google/genai@^1.35.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-slate-50 text-slate-900 antialiased">
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
