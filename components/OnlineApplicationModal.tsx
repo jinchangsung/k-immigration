@@ -44,16 +44,22 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
     // Status visual steps
     const procedureSteps = ['대행신청', '상담', '금액통보', '결제', '문서작성', '접수', '심사', '결과'];
 
+    // Effect: Load applications when modal opens or user changes
     useEffect(() => {
         if (isOpen && user) {
             loadApplications();
-            // Reset state when opening modal to ensure List View is shown first on mobile
+        }
+    }, [isOpen, user]);
+
+    // Effect: Reset view state ONLY when modal first opens
+    useEffect(() => {
+        if (isOpen) {
             if (window.innerWidth < 768) {
                 setSelectedApp(null);
                 setIsCreating(false);
             }
         }
-    }, [isOpen, user]);
+    }, [isOpen]);
 
     // Effect: Load SubMenus when Category changes
     useEffect(() => {
@@ -224,17 +230,19 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
     if (!isOpen) return null;
 
     // View State Logic
+    // If true: Show Detail (and Hide List on mobile)
+    // If false: Show List (and Hide Detail on mobile)
     const isMobileDetailView = !!(selectedApp || isCreating);
 
     return (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center p-0 md:p-4 bg-black/70 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-4 bg-black/70 backdrop-blur-sm">
             {/* Modal Container: h-[100dvh] for mobile full height, rounded-none on mobile */}
-            <div className="bg-white md:rounded-2xl w-full md:max-w-6xl h-[100dvh] md:h-[90vh] flex overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="bg-white rounded-none md:rounded-2xl w-full md:max-w-6xl h-[100dvh] md:h-[90vh] flex overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
                 
                 {/* Left Sidebar: Application List */}
-                {/* Mobile: Hidden if Detail Active. Desktop: Always Flex. */}
-                <div className={`w-full md:w-80 bg-slate-50 border-r border-slate-200 shrink-0 ${isMobileDetailView ? 'hidden md:flex md:flex-col' : 'flex flex-col'}`}>
-                    <div className="p-5 border-b border-slate-200 flex justify-between items-center bg-white sticky top-0 z-10">
+                {/* Logic: If MobileDetailView is active, Hide sidebar on mobile. Else Show. Always show on Desktop. */}
+                <div className={`w-full md:w-80 bg-slate-50 border-r border-slate-200 shrink-0 flex-col ${isMobileDetailView ? 'hidden md:flex' : 'flex'}`}>
+                    <div className="p-5 border-b border-slate-200 flex justify-between items-center bg-white sticky top-0 z-10 shrink-0">
                         <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
                             <LayoutDashboard className="text-indigo-600" />
                             업무 목록
@@ -252,7 +260,8 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
                             </button>
                         </div>
                     </div>
-                    <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                    {/* List Content with min-h-0 for proper scrolling */}
+                    <div className="flex-1 overflow-y-auto p-3 space-y-2 min-h-0">
                         {applications.length === 0 ? (
                             <div className="text-center py-10 text-slate-400 text-sm flex flex-col items-center gap-2">
                                 <Search size={24} className="opacity-20" />
@@ -274,7 +283,7 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
                                         {/* Delete Button */}
                                         <div 
                                             onClick={(e) => handleDeleteApplication(app.id, e)}
-                                            className="absolute top-2 right-2 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg opacity-100 md:opacity-0 group-hover:opacity-100 transition-all z-20"
+                                            className="absolute top-2 right-2 p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg opacity-100 md:opacity-0 group-hover:opacity-100 transition-all z-20"
                                             title="삭제"
                                         >
                                             <Trash2 size={14} />
@@ -301,8 +310,8 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
                 </div>
 
                 {/* Main Content Area */}
-                {/* Mobile: Hidden if List Active (Detail Inactive). Desktop: Always Flex. */}
-                <div className={`w-full md:flex-1 bg-white overflow-hidden ${isMobileDetailView ? 'flex flex-col' : 'hidden md:flex md:flex-col'}`}>
+                {/* Logic: If MobileDetailView is active, Show Main (Flex). Else Hide on mobile. Always show Flex on Desktop. */}
+                <div className={`w-full md:flex-1 bg-white overflow-hidden flex-col ${isMobileDetailView ? 'flex' : 'hidden md:flex'}`}>
                     <div className="bg-white border-b border-slate-200 p-4 flex justify-between items-center shrink-0">
                         <div className="flex items-center gap-2">
                             {/* Mobile Back Button */}
@@ -321,9 +330,11 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
                         </button>
                     </div>
 
+                    {/* Content Area with min-h-0 for proper scrolling */}
+                    <div className="flex-1 overflow-y-auto p-4 md:p-8 min-h-0">
                     {isCreating ? (
                         /* CREATE NEW APPLICATION FORM */
-                        <div className="flex-1 overflow-y-auto p-4 md:p-8 flex justify-center bg-slate-50">
+                        <div className="flex justify-center bg-slate-50 min-h-full">
                             <div className="w-full max-w-2xl space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4">
                                 <div className="text-center mb-4 md:mb-8">
                                     <h3 className="text-xl md:text-2xl font-bold text-slate-800 mb-2">어떤 업무를 도와드릴까요?</h3>
@@ -431,7 +442,7 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
                         </div>
                     ) : selectedApp ? (
                         /* EXISTING APPLICATION DETAILS */
-                        <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-50/50">
+                        <div className="bg-slate-50/50 min-h-full">
                             
                             {/* 1. Status Tracker */}
                             <div className="mb-6 md:mb-8 bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-sm">
@@ -624,7 +635,7 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
                             </div>
                         </div>
                     ) : (
-                        <div className="flex-1 flex flex-col items-center justify-center text-slate-300 gap-6 bg-slate-50 p-4">
+                        <div className="flex flex-col items-center justify-center text-slate-300 gap-6 bg-slate-50 p-4 min-h-full">
                             <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-sm border border-slate-100">
                                 <LayoutDashboard size={48} className="text-slate-200" />
                             </div>
@@ -640,6 +651,7 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
                             </button>
                         </div>
                     )}
+                    </div>
                 </div>
             </div>
         </div>
