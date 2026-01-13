@@ -231,30 +231,30 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
     if (!isOpen) return null;
 
     // View State Logic
-    // If we have a selected app or are creating a new one, we are in "Detail View"
     const isMobileDetailView = !!(selectedApp || isCreating);
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 lg:p-4 bg-black/70 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm lg:p-4">
             {/* 
               Modal Container Structure:
-              - Mobile (<lg): Full width/height, Flex Column
-              - Desktop (>=lg): Fixed max-width, 90vh height, Flex Row
+              - Mobile (<lg): Block display (not flex-col), Height = 100dvh (dynamic viewport height)
+              - Desktop (>=lg): Flex Row, Fixed Max Width
             */}
-            <div className="bg-white rounded-none lg:rounded-2xl w-full lg:max-w-6xl h-full lg:h-[90vh] flex flex-col lg:flex-row overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="bg-white w-full h-[100dvh] lg:h-[90vh] lg:max-w-6xl lg:rounded-2xl shadow-2xl overflow-hidden block lg:flex">
                 
                 {/* 
                   Left Sidebar: Application List 
-                  Visibility Logic (Using !important to force visibility):
-                  - Mobile: Hidden if viewing details (isMobileDetailView is true) -> !hidden
-                  - Desktop: Always visible -> lg:!flex
+                  Visibility Logic:
+                  - Mobile: Visible ONLY when NOT in detail view (!isMobileDetailView)
+                  - Desktop: Always visible (lg:flex)
                 */}
                 <div className={`
-                    bg-slate-50 border-r border-slate-200 shrink-0 flex-col
-                    w-full lg:w-80 h-full
-                    ${isMobileDetailView ? '!hidden lg:!flex' : 'flex'}
+                    bg-slate-50 border-r border-slate-200 
+                    w-full lg:w-80 h-full 
+                    flex flex-col
+                    ${isMobileDetailView ? 'hidden lg:flex' : 'flex'}
                 `}>
-                    <div className="p-5 border-b border-slate-200 flex justify-between items-center bg-white sticky top-0 z-10 shrink-0">
+                    <div className="p-5 border-b border-slate-200 flex justify-between items-center bg-white sticky top-0 z-10 shrink-0 h-16">
                         <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
                             <LayoutDashboard className="text-indigo-600" />
                             업무 목록
@@ -273,7 +273,7 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
                         </div>
                     </div>
                     {/* List Content */}
-                    <div className="flex-1 overflow-y-auto p-3 space-y-2 min-h-0">
+                    <div className="flex-1 overflow-y-auto p-3 space-y-2">
                         {applications.length === 0 ? (
                             <div className="text-center py-10 text-slate-400 text-sm flex flex-col items-center gap-2">
                                 <Search size={24} className="opacity-20" />
@@ -323,17 +323,17 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
 
                 {/* 
                   Main Content Area 
-                  Visibility Logic (Using !important to force visibility):
-                  - Mobile: Visible ONLY if viewing details (isMobileDetailView is true) -> flex
-                  - Mobile: Hidden if NOT viewing details -> !hidden
-                  - Desktop: Always visible -> lg:!flex
+                  Visibility Logic:
+                  - Mobile: Visible ONLY when in detail view (isMobileDetailView)
+                  - Desktop: Always visible (lg:flex)
                 */}
                 <div className={`
-                    bg-white overflow-hidden flex-col
+                    bg-white
                     w-full lg:flex-1 h-full
-                    ${isMobileDetailView ? 'flex' : '!hidden lg:!flex'}
+                    flex flex-col
+                    ${isMobileDetailView ? 'flex' : 'hidden lg:flex'}
                 `}>
-                    <div className="bg-white border-b border-slate-200 p-4 flex justify-between items-center shrink-0">
+                    <div className="bg-white border-b border-slate-200 p-4 flex justify-between items-center shrink-0 h-16">
                         <div className="flex items-center gap-2">
                             {/* Mobile Back Button: Only visible on mobile (lg:hidden) */}
                             <button 
@@ -352,17 +352,17 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
                     </div>
 
                     {/* Detail Content with scroll */}
-                    <div className="flex-1 overflow-y-auto p-4 lg:p-8 min-h-0 pb-10">
+                    <div className="flex-1 overflow-y-auto p-4 lg:p-8 pb-20">
                     {isCreating ? (
                         /* CREATE NEW APPLICATION FORM */
                         <div className="flex justify-center bg-slate-50 min-h-full">
                             <div className="w-full max-w-2xl space-y-6 lg:space-y-8 animate-in fade-in slide-in-from-bottom-4">
-                                <div className="text-center mb-4 lg:mb-8">
+                                <div className="text-center mb-4 lg:mb-8 pt-4">
                                     <h3 className="text-xl lg:text-2xl font-bold text-slate-800 mb-2">어떤 업무를 도와드릴까요?</h3>
                                     <p className="text-sm lg:text-base text-slate-500">원하시는 상품을 선택하고 문의 내용을 입력해주세요.</p>
                                 </div>
 
-                                <form onSubmit={handleCreateApplication} className="space-y-6">
+                                <form onSubmit={handleCreateApplication} className="space-y-6 pb-8">
                                     <div className="space-y-6 bg-white p-6 lg:p-8 rounded-2xl border border-slate-200 shadow-sm">
                                         {/* Step 1: Category */}
                                         <div>
@@ -463,7 +463,7 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
                         </div>
                     ) : selectedApp ? (
                         /* EXISTING APPLICATION DETAILS */
-                        <div className="bg-slate-50/50 min-h-full">
+                        <div className="bg-slate-50/50 min-h-full pb-8">
                             
                             {/* 1. Status Tracker */}
                             <div className="mb-6 lg:mb-8 bg-white p-4 lg:p-6 rounded-2xl border border-slate-200 shadow-sm">
