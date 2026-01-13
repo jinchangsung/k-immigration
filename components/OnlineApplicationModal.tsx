@@ -236,18 +236,22 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-4 bg-black/70 backdrop-blur-sm">
-            {/* Modal Container: h-[100dvh] for mobile full height, rounded-none on mobile */}
-            {/* LAYOUT FIX: Changed to flex-col on mobile, flex-row on desktop */}
-            <div className="bg-white rounded-none md:rounded-2xl w-full md:max-w-6xl h-[100dvh] md:h-[90vh] flex flex-col md:flex-row overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+            {/* Modal Container */}
+            {/* Mobile: h-full (fills fixed inset-0), rounded-none */}
+            {/* Desktop: md:h-[90vh], md:rounded-2xl */}
+            <div className="bg-white rounded-none md:rounded-2xl w-full md:max-w-6xl h-full md:h-[90vh] flex flex-col md:flex-row overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
                 
                 {/* Left Sidebar: Application List */}
-                {/* Logic: 
-                    Mobile: If detail view active -> hidden. Else -> flex & flex-1 (to fill height).
-                    Desktop: Always flex, fixed width.
+                {/* Mobile: 
+                    - If detail active: hidden
+                    - If detail inactive: flex w-full
+                   Desktop:
+                    - Always flex, fixed width (w-80)
                 */}
                 <div className={`
-                    w-full md:w-80 bg-slate-50 border-r border-slate-200 shrink-0 flex-col
-                    ${isMobileDetailView ? 'hidden md:flex' : 'flex flex-1 md:flex-none'}
+                    bg-slate-50 border-r border-slate-200 shrink-0 flex-col
+                    ${isMobileDetailView ? 'hidden md:flex' : 'flex w-full'}
+                    md:w-80
                 `}>
                     <div className="p-5 border-b border-slate-200 flex justify-between items-center bg-white sticky top-0 z-10 shrink-0">
                         <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
@@ -317,13 +321,16 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
                 </div>
 
                 {/* Main Content Area */}
-                {/* Logic: 
-                    Mobile: If detail view active -> flex & flex-1. Else -> hidden.
-                    Desktop: Always flex & flex-1.
+                {/* Mobile: 
+                    - If detail active: flex w-full
+                    - If detail inactive: hidden
+                   Desktop:
+                    - Always flex, flex-1
                 */}
                 <div className={`
-                    w-full md:flex-1 bg-white overflow-hidden flex-col
-                    ${isMobileDetailView ? 'flex flex-1' : 'hidden md:flex'}
+                    bg-white overflow-hidden flex-col
+                    ${isMobileDetailView ? 'flex w-full' : 'hidden md:flex'}
+                    md:flex-1
                 `}>
                     <div className="bg-white border-b border-slate-200 p-4 flex justify-between items-center shrink-0">
                         <div className="flex items-center gap-2">
@@ -344,7 +351,7 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
                     </div>
 
                     {/* Content Area with min-h-0 for proper scrolling */}
-                    <div className="flex-1 overflow-y-auto p-4 md:p-8 min-h-0">
+                    <div className="flex-1 overflow-y-auto p-4 md:p-8 min-h-0 pb-10">
                     {isCreating ? (
                         /* CREATE NEW APPLICATION FORM */
                         <div className="flex justify-center bg-slate-50 min-h-full">
@@ -384,7 +391,7 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
                                                 <select 
                                                     value={newAppProduct}
                                                     onChange={(e) => setNewAppProduct(e.target.value)}
-                                                    className="w-full p-4 rounded-xl border border-slate-300 bg-white font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none appearance-none text-sm md:text-base"
+                                                    className="w-full p-4 rounded-xl border border-slate-300 bg-white font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none appearance-none text-base"
                                                 >
                                                     {newAppSubMenus.length > 0 ? (
                                                         newAppSubMenus.map(sub => (
@@ -408,7 +415,7 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
                                                     <select 
                                                         value={newAppDetailOption}
                                                         onChange={(e) => setNewAppDetailOption(e.target.value)}
-                                                        className="w-full p-4 rounded-xl border border-slate-300 bg-white font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none appearance-none text-sm md:text-base"
+                                                        className="w-full p-4 rounded-xl border border-slate-300 bg-white font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none appearance-none text-base"
                                                     >
                                                         {availableDetailOptions.map((opt, idx) => (
                                                             <option key={idx} value={opt.value}>{opt.label}</option>
@@ -430,7 +437,7 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
                                                 onChange={(e) => setNewAppContent(e.target.value)}
                                                 rows={5}
                                                 placeholder="상담받고 싶은 내용을 자유롭게 적어주세요."
-                                                className="w-full p-4 rounded-xl border border-slate-300 bg-white resize-none focus:ring-2 focus:ring-indigo-500 outline-none text-sm md:text-base"
+                                                className="w-full p-4 rounded-xl border border-slate-300 bg-white resize-none focus:ring-2 focus:ring-indigo-500 outline-none text-base"
                                             ></textarea>
                                         </div>
                                     </div>
