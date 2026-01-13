@@ -237,11 +237,18 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-4 bg-black/70 backdrop-blur-sm">
             {/* Modal Container: h-[100dvh] for mobile full height, rounded-none on mobile */}
-            <div className="bg-white rounded-none md:rounded-2xl w-full md:max-w-6xl h-[100dvh] md:h-[90vh] flex overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+            {/* LAYOUT FIX: Changed to flex-col on mobile, flex-row on desktop */}
+            <div className="bg-white rounded-none md:rounded-2xl w-full md:max-w-6xl h-[100dvh] md:h-[90vh] flex flex-col md:flex-row overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
                 
                 {/* Left Sidebar: Application List */}
-                {/* Logic: If MobileDetailView is active, Hide sidebar on mobile. Else Show. Always show on Desktop. */}
-                <div className={`w-full md:w-80 bg-slate-50 border-r border-slate-200 shrink-0 flex-col ${isMobileDetailView ? 'hidden md:flex' : 'flex'}`}>
+                {/* Logic: 
+                    Mobile: If detail view active -> hidden. Else -> flex & flex-1 (to fill height).
+                    Desktop: Always flex, fixed width.
+                */}
+                <div className={`
+                    w-full md:w-80 bg-slate-50 border-r border-slate-200 shrink-0 flex-col
+                    ${isMobileDetailView ? 'hidden md:flex' : 'flex flex-1 md:flex-none'}
+                `}>
                     <div className="p-5 border-b border-slate-200 flex justify-between items-center bg-white sticky top-0 z-10 shrink-0">
                         <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
                             <LayoutDashboard className="text-indigo-600" />
@@ -310,8 +317,14 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
                 </div>
 
                 {/* Main Content Area */}
-                {/* Logic: If MobileDetailView is active, Show Main (Flex). Else Hide on mobile. Always show Flex on Desktop. */}
-                <div className={`w-full md:flex-1 bg-white overflow-hidden flex-col ${isMobileDetailView ? 'flex' : 'hidden md:flex'}`}>
+                {/* Logic: 
+                    Mobile: If detail view active -> flex & flex-1. Else -> hidden.
+                    Desktop: Always flex & flex-1.
+                */}
+                <div className={`
+                    w-full md:flex-1 bg-white overflow-hidden flex-col
+                    ${isMobileDetailView ? 'flex flex-1' : 'hidden md:flex'}
+                `}>
                     <div className="bg-white border-b border-slate-200 p-4 flex justify-between items-center shrink-0">
                         <div className="flex items-center gap-2">
                             {/* Mobile Back Button */}
