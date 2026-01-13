@@ -47,6 +47,11 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
     useEffect(() => {
         if (isOpen && user) {
             loadApplications();
+            // Reset state when opening modal
+            if (window.innerWidth < 768) {
+                setSelectedApp(null);
+                setIsCreating(false);
+            }
         }
     }, [isOpen, user]);
 
@@ -91,12 +96,11 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
         if (!user) return;
         const myApps = dbService.getConsultationsByEmail(user.email);
         setApplications(myApps);
-        // Update selected app if it exists
+        
+        // Update selected app if it exists (for refreshes), but DO NOT auto-select on load to prevent mobile UX issues
         if (selectedApp) {
             const fresh = myApps.find(a => a.id === selectedApp.id);
             if (fresh) setSelectedApp(fresh);
-        } else if (!isCreating && myApps.length > 0 && !selectedApp) {
-            setSelectedApp(myApps[0]);
         }
     };
 
@@ -225,11 +229,12 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
 
     return (
         <div className="fixed inset-0 z-[80] flex items-center justify-center p-0 md:p-4 bg-black/70 backdrop-blur-sm">
-            <div className="bg-white md:rounded-2xl w-full md:max-w-6xl h-full md:h-[90vh] flex overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+            {/* Modal Container: Used h-[100dvh] for mobile to handle address bar issues */}
+            <div className="bg-white md:rounded-2xl w-full md:max-w-6xl h-[100dvh] md:h-[90vh] flex overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
                 
                 {/* Left Sidebar: Application List */}
-                {/* Removed static 'flex' to prevent conflict with 'hidden' */}
-                <div className={`w-full md:w-80 bg-slate-50 border-r border-slate-200 flex-col shrink-0 ${showDetail ? 'hidden md:flex' : 'flex'}`}>
+                {/* Use !important classes (!hidden, !flex) to force layout override on mobile */}
+                <div className={`w-full md:w-80 bg-slate-50 border-r border-slate-200 flex-col shrink-0 ${showDetail ? '!hidden md:!flex' : '!flex'}`}>
                     <div className="p-5 border-b border-slate-200 flex justify-between items-center bg-white sticky top-0 z-10">
                         <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
                             <LayoutDashboard className="text-indigo-600" />
@@ -297,8 +302,8 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
                 </div>
 
                 {/* Main Content Area */}
-                {/* Removed static 'flex' to prevent conflict with 'hidden' */}
-                <div className={`flex-1 flex-col bg-white overflow-hidden ${showList ? 'hidden md:flex' : 'flex'}`}>
+                {/* Use !important classes (!hidden, !flex) to force layout override on mobile */}
+                <div className={`w-full md:flex-1 flex-col bg-white overflow-hidden ${showList ? '!hidden md:!flex' : '!flex'}`}>
                     <div className="bg-white border-b border-slate-200 p-4 flex justify-between items-center shrink-0">
                         <div className="flex items-center gap-2">
                             {/* Mobile Back Button */}
