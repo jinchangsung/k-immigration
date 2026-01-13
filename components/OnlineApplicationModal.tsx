@@ -54,6 +54,7 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
     // Effect: Reset view state ONLY when modal first opens
     useEffect(() => {
         if (isOpen) {
+            // Mobile: Default to list view
             if (window.innerWidth < 768) {
                 setSelectedApp(null);
                 setIsCreating(false);
@@ -230,28 +231,26 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
     if (!isOpen) return null;
 
     // View State Logic
-    // If true: Show Detail (and Hide List on mobile)
-    // If false: Show List (and Hide Detail on mobile)
     const isMobileDetailView = !!(selectedApp || isCreating);
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-4 bg-black/70 backdrop-blur-sm">
-            {/* Modal Container */}
-            {/* Mobile: h-full (fills fixed inset-0), rounded-none */}
-            {/* Desktop: md:h-[90vh], md:rounded-2xl */}
+            {/* 
+              Modal Container Structure:
+              - Mobile: Full width/height (w-full h-full), No border radius (rounded-none), Flex Column
+              - Desktop: Fixed max-width, 90vh height, Rounded corners, Flex Row
+            */}
             <div className="bg-white rounded-none md:rounded-2xl w-full md:max-w-6xl h-full md:h-[90vh] flex flex-col md:flex-row overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
                 
-                {/* Left Sidebar: Application List */}
-                {/* Mobile: 
-                    - If detail active: hidden
-                    - If detail inactive: flex w-full
-                   Desktop:
-                    - Always flex, fixed width (w-80)
+                {/* 
+                  Left Sidebar: Application List 
+                  - Mobile: Shows if NO application selected (isMobileDetailView = false)
+                  - Desktop: Always shows (w-80)
                 */}
                 <div className={`
                     bg-slate-50 border-r border-slate-200 shrink-0 flex-col
-                    ${isMobileDetailView ? 'hidden md:flex' : 'flex w-full'}
-                    md:w-80
+                    ${isMobileDetailView ? 'hidden md:flex' : 'flex'}
+                    w-full md:w-80 h-full
                 `}>
                     <div className="p-5 border-b border-slate-200 flex justify-between items-center bg-white sticky top-0 z-10 shrink-0">
                         <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
@@ -271,7 +270,7 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
                             </button>
                         </div>
                     </div>
-                    {/* List Content with min-h-0 for proper scrolling */}
+                    {/* List Content */}
                     <div className="flex-1 overflow-y-auto p-3 space-y-2 min-h-0">
                         {applications.length === 0 ? (
                             <div className="text-center py-10 text-slate-400 text-sm flex flex-col items-center gap-2">
@@ -291,7 +290,7 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
                                 >
                                     <div className="flex justify-between items-start mb-1">
                                         <span className="font-bold text-slate-800 text-sm truncate max-w-[180px] md:max-w-[120px]">{app.serviceType || '일반상담'}</span>
-                                        {/* Delete Button */}
+                                        {/* Delete Button (Visible on Hover or Slide) */}
                                         <div 
                                             onClick={(e) => handleDeleteApplication(app.id, e)}
                                             className="absolute top-2 right-2 p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg opacity-100 md:opacity-0 group-hover:opacity-100 transition-all z-20"
@@ -320,17 +319,15 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
                     </div>
                 </div>
 
-                {/* Main Content Area */}
-                {/* Mobile: 
-                    - If detail active: flex w-full
-                    - If detail inactive: hidden
-                   Desktop:
-                    - Always flex, flex-1
+                {/* 
+                  Main Content Area 
+                  - Mobile: Shows if application selected (isMobileDetailView = true)
+                  - Desktop: Always shows (flex-1)
                 */}
                 <div className={`
                     bg-white overflow-hidden flex-col
-                    ${isMobileDetailView ? 'flex w-full' : 'hidden md:flex'}
-                    md:flex-1
+                    ${isMobileDetailView ? 'flex' : 'hidden md:flex'}
+                    w-full md:flex-1 h-full
                 `}>
                     <div className="bg-white border-b border-slate-200 p-4 flex justify-between items-center shrink-0">
                         <div className="flex items-center gap-2">
@@ -350,7 +347,7 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
                         </button>
                     </div>
 
-                    {/* Content Area with min-h-0 for proper scrolling */}
+                    {/* Detail Content with scroll */}
                     <div className="flex-1 overflow-y-auto p-4 md:p-8 min-h-0 pb-10">
                     {isCreating ? (
                         /* CREATE NEW APPLICATION FORM */
