@@ -681,7 +681,287 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
 
 // Helper for status icon
 const ActivityIcon = ({ status }: { status: ProcessStatus }) => {
-    return <RefreshCw size={20} className="text-indigo-600" />;
-}
+   return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm lg:p-4">
+        {/* [모달 전체 컨테이너]
+          - 모바일: 전체 화면 꽉 채움 (w-full h-full)
+          - PC (lg): 최대 너비 제한, 둥근 모서리, 그림자 등 스타일 적용
+        */}
+        <div className="bg-white w-full h-[100dvh] lg:h-[90vh] lg:max-w-6xl lg:rounded-2xl shadow-2xl overflow-hidden flex flex-col lg:flex-row relative">
+            
+            {/* [왼쪽 사이드바: 업무 목록]
+              - 모바일: 상세 화면(isMobileDetailView)이 켜져 있으면 숨김(hidden), 아니면 보임(flex)
+              - PC (lg): 항상 보임 (lg:flex), 너비 20rem(80) 고정
+            */}
+            <div className={`
+                bg-slate-50 border-r border-slate-200 
+                w-full lg:w-80 h-full 
+                flex-col 
+                ${isMobileDetailView ? 'hidden lg:flex' : 'flex'}
+            `}>
+                {/* 헤더 부분 */}
+                <div className="p-5 border-b border-slate-200 flex justify-between items-center bg-white sticky top-0 z-10 shrink-0 h-16">
+                    <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
+                        <LayoutDashboard className="text-indigo-600" />
+                        업무 목록
+                    </h3>
+                    <div className="flex items-center gap-2">
+                        <button 
+                            onClick={() => { setIsCreating(true); setSelectedApp(null); }}
+                            className="p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm flex items-center gap-1 text-xs font-bold"
+                            title="새 업무 신청"
+                        >
+                            <Plus size={14} /> 신청
+                        </button>
+                        {/* 닫기 버튼: 모바일에서만 보임 (목록 화면일 때 모달 자체를 닫음) */}
+                        <button onClick={onClose} className="lg:hidden p-2 text-slate-400 hover:bg-slate-100 rounded-lg">
+                            <X size={20} />
+                        </button>
+                    </div>
+                </div>
 
-export default OnlineApplicationModal;
+                {/* 리스트 내용 */}
+                <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                    {applications.length === 0 ? (
+                        <div className="text-center py-10 text-slate-400 text-sm flex flex-col items-center gap-2">
+                            <Search size={24} className="opacity-20" />
+                            <p>진행중인 내역이 없습니다.<br/>우측 상단 <b>[+ 신청]</b> 버튼을 눌러<br/>새로운 업무를 시작하세요.</p>
+                        </div>
+                    ) : (
+                        applications.map(app => (
+                            <button
+                                key={app.id}
+                                onClick={() => { setSelectedApp(app); setIsCreating(false); }}
+                                className={`w-full text-left p-4 rounded-xl border transition-all relative group ${
+                                    selectedApp?.id === app.id && !isCreating
+                                    ? 'bg-white border-indigo-500 shadow-md ring-1 ring-indigo-500 z-10' 
+                                    : 'bg-white border-slate-200 hover:border-indigo-300 hover:bg-slate-50'
+                                }`}
+                            >
+                                {/* 기존 리스트 아이템 내부 코드 유지... (생략 없음) */}
+                                <div className="flex justify-between items-start mb-1">
+                                    <span className="font-bold text-slate-800 text-sm truncate max-w-[180px] lg:max-w-[120px]">{app.serviceType || '일반상담'}</span>
+                                    <div 
+                                        onClick={(e) => handleDeleteApplication(app.id, e)}
+                                        className="absolute top-2 right-2 p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg opacity-100 lg:opacity-0 group-hover:opacity-100 transition-all z-20"
+                                    >
+                                        <Trash2 size={14} />
+                                    </div>
+                                </div>
+                                <div className="mb-2">
+                                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                                        app.processStatus === 'COMPLETED' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                                    }`}>
+                                        {procedureSteps[getStatusIndex(app.processStatus)]}
+                                    </span>
+                                </div>
+                                <p className="text-xs text-slate-500 truncate mb-2">{app.content}</p>
+                                <div className="flex justify-between items-center text-[10px] text-slate-400">
+                                    <div className="flex items-center gap-1">
+                                        <Clock size={10} /> {new Date(app.createdAt).toLocaleDateString()}
+                                    </div>
+                                    {app.attachments.length > 0 && <div className="flex items-center gap-1"><Paperclip size={10}/> {app.attachments.length}</div>}
+                                </div>
+                            </button>
+                        ))
+                    )}
+                </div>
+            </div>
+
+            {/* [오른쪽 메인 콘텐츠: 상세 내역 및 폼]
+              - 모바일: 상세 화면(isMobileDetailView)이 켜져 있을 때만 보임(flex), 아니면 숨김(hidden)
+              - PC (lg): 항상 보임 (lg:flex), 남은 공간 다 차지함(flex-1)
+            */}
+            <div className={`
+                bg-white
+                w-full lg:flex-1 h-full
+                flex-col
+                ${isMobileDetailView ? 'flex' : 'hidden lg:flex'}
+            `}>
+                {/* 헤더 부분 */}
+                <div className="bg-white border-b border-slate-200 p-4 flex justify-between items-center shrink-0 h-16 sticky top-0 z-20">
+                    <div className="flex items-center gap-2 overflow-hidden">
+                        {/* 뒤로가기 버튼: 모바일에서만 보임 (상세 -> 목록 이동) */}
+                        <button 
+                            onClick={() => { setSelectedApp(null); setIsCreating(false); }}
+                            className="lg:hidden p-2 -ml-2 text-slate-500 hover:bg-slate-50 rounded-full shrink-0"
+                        >
+                            <ArrowLeft size={20} />
+                        </button>
+                        <h2 className="font-bold text-lg lg:text-xl text-slate-800 flex items-center gap-2 truncate">
+                            {isCreating ? <><Plus size={24} className="text-indigo-600 hidden lg:block"/> 새로운 업무 신청</> : selectedApp ? <><FileText size={24} className="text-indigo-600 hidden lg:block"/> 상세 내역 조회</> : '업무를 선택해주세요'}
+                        </h2>
+                    </div>
+                    {/* PC용 닫기 버튼: 모달 전체 닫기 */}
+                    <button onClick={onClose} className="hidden lg:block p-2 hover:bg-slate-100 rounded-full transition-colors">
+                        <X size={24} className="text-slate-500" />
+                    </button>
+                </div>
+
+                {/* 상세 콘텐츠 영역 (스크롤 가능) */}
+                <div className="flex-1 overflow-y-auto p-4 lg:p-8 pb-20 custom-scrollbar">
+                    {/* ... 기존의 상세 내용 (Form, Details, Empty State) 코드는 그대로 둡니다 ... */}
+                    {isCreating ? (
+                        /* CREATE FORM 코드 그대로 유지 */
+                         <div className="flex justify-center bg-slate-50 min-h-full">
+                            <div className="w-full max-w-2xl space-y-6 lg:space-y-8 animate-in fade-in slide-in-from-bottom-4">
+                                <div className="text-center mb-4 lg:mb-8 pt-4">
+                                    <h3 className="text-xl lg:text-2xl font-bold text-slate-800 mb-2">어떤 업무를 도와드릴까요?</h3>
+                                    <p className="text-sm lg:text-base text-slate-500">원하시는 상품을 선택하고 문의 내용을 입력해주세요.</p>
+                                </div>
+                                <form onSubmit={handleCreateApplication} className="space-y-6 pb-8">
+                                    {/* ... 기존 폼 내부 내용 ... */}
+                                    {/* (코드 줄임 없이 기존 코드 그대로 사용하시면 됩니다) */}
+                                     <div className="space-y-6 bg-white p-6 lg:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 mb-2">1. 카테고리 선택</label>
+                                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                                                {SERVICE_CATEGORIES.map(cat => (
+                                                    <button key={cat.id} type="button" onClick={() => setNewAppServiceId(cat.id)} className={`p-3 rounded-xl text-xs lg:text-sm font-bold border transition-all ${newAppServiceId === cat.id ? 'bg-indigo-600 text-white border-indigo-600 shadow-md' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-indigo-300 hover:bg-white'}`}>{cat.label}</button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 mb-2">2. 세부 상품 선택</label>
+                                            <div className="relative">
+                                                <select value={newAppProduct} onChange={(e) => setNewAppProduct(e.target.value)} className="w-full p-4 rounded-xl border border-slate-300 bg-white font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none appearance-none text-base">
+                                                    {newAppSubMenus.length > 0 ? newAppSubMenus.map(sub => <option key={sub.id} value={sub.title}>{sub.title}</option>) : <option value={SERVICE_CATEGORIES.find(c => c.id === newAppServiceId)?.label}>{SERVICE_CATEGORIES.find(c => c.id === newAppServiceId)?.label}</option>}
+                                                </select>
+                                                <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 rotate-90 pointer-events-none" />
+                                            </div>
+                                        </div>
+                                        {availableDetailOptions.length > 0 && (
+                                            <div className="animate-in fade-in slide-in-from-top-2">
+                                                <label className="block text-sm font-bold text-slate-700 mb-2">3. 상세 유형 선택</label>
+                                                <div className="relative">
+                                                    <select value={newAppDetailOption} onChange={(e) => setNewAppDetailOption(e.target.value)} className="w-full p-4 rounded-xl border border-slate-300 bg-white font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none appearance-none text-base">
+                                                        {availableDetailOptions.map((opt, idx) => <option key={idx} value={opt.value}>{opt.label}</option>)}
+                                                    </select>
+                                                    <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 rotate-90 pointer-events-none" />
+                                                </div>
+                                            </div>
+                                        )}
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 mb-2">{availableDetailOptions.length > 0 ? '4. 문의 내용' : '3. 문의 내용'}</label>
+                                            <textarea required value={newAppContent} onChange={(e) => setNewAppContent(e.target.value)} rows={5} placeholder="상담받고 싶은 내용을 자유롭게 적어주세요." className="w-full p-4 rounded-xl border border-slate-300 bg-white resize-none focus:ring-2 focus:ring-indigo-500 outline-none text-base"></textarea>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-4">
+                                        <button type="button" onClick={() => setIsCreating(false)} className="flex-1 py-4 bg-white border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-colors">취소</button>
+                                        <button type="submit" className="flex-1 py-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-indigo-200"><Send size={18} /> 신청하기</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    ) : selectedApp ? (
+                        /* DETAIL VIEW 코드 */
+                        <div className="bg-slate-50/50 min-h-full pb-8">
+                            <div className="mb-6 lg:mb-8 bg-white p-4 lg:p-6 rounded-2xl border border-slate-200 shadow-sm">
+                                <h4 className="font-bold text-slate-700 mb-6 flex items-center gap-2">
+                                    <ActivityIcon status={selectedApp.processStatus} /> 
+                                    진행 상태 : <span className="text-indigo-600">{procedureSteps[getStatusIndex(selectedApp.processStatus)]}</span>
+                                </h4>
+                                {/* ... 상태바 및 상세 내용들 ... (기존 코드 그대로) */}
+                                <div className="relative px-2 lg:px-4 overflow-x-auto pb-2">
+                                     <div className="min-w-[500px]">
+                                        <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-100 -translate-y-1/2 rounded-full z-0"></div>
+                                        <div className="absolute top-1/2 left-0 h-1 bg-indigo-500 -translate-y-1/2 rounded-full z-0 transition-all duration-500" style={{ width: `${(getStatusIndex(selectedApp.processStatus) / (procedureSteps.length - 1)) * 100}%` }}></div>
+                                        <div className="flex justify-between relative z-10">
+                                            {procedureSteps.map((step, idx) => {
+                                                const currentIdx = getStatusIndex(selectedApp.processStatus);
+                                                const isPassed = idx <= currentIdx;
+                                                const isCurrent = idx === currentIdx;
+                                                return (
+                                                    <div key={idx} className="flex flex-col items-center gap-2 min-w-[40px]">
+                                                        <div className={`w-4 h-4 rounded-full border-2 transition-all ${isCurrent ? 'bg-indigo-600 border-indigo-600 scale-150 shadow-md' : isPassed ? 'bg-indigo-600 border-indigo-600' : 'bg-white border-slate-300'}`}></div>
+                                                        <span className={`text-[10px] font-bold mt-1 whitespace-nowrap ${isCurrent ? 'text-indigo-600' : isPassed ? 'text-slate-600' : 'text-slate-300'}`}>{step}</span>
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {/* ... 나머지 상세 컴포넌트들 ... (기존 코드와 동일) */}
+                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+                                <div className="space-y-4 lg:space-y-6">
+                                    <section className="bg-white p-4 lg:p-6 rounded-2xl border border-slate-200 shadow-sm">
+                                        <h4 className="font-bold text-slate-700 mb-4 flex items-center gap-2 border-b border-slate-100 pb-2"><FileText size={18} className="text-slate-400" /> 신청 정보</h4>
+                                        <div className="space-y-4 text-sm text-slate-600">
+                                            <div className="flex justify-between"><span className="font-medium text-slate-500">상품명</span><span className="font-bold text-slate-800 text-base text-right ml-4">{selectedApp.serviceType}</span></div>
+                                            <div className="flex justify-between"><span className="font-medium text-slate-500">신청인</span><span className="font-bold text-slate-800">{selectedApp.name}</span></div>
+                                            <div><span className="block font-medium text-slate-500 mb-1">문의 내용</span><div className="bg-slate-50 p-3 rounded-lg border border-slate-100 text-slate-700 whitespace-pre-wrap leading-relaxed">{selectedApp.content}</div></div>
+                                        </div>
+                                    </section>
+                                     <section className="bg-blue-50 p-4 lg:p-6 rounded-2xl border border-blue-100 shadow-sm">
+                                        <h4 className="font-bold text-blue-800 mb-4 flex items-center gap-2"><CheckCircle size={18} /> 관리자 답변</h4>
+                                        {selectedApp.adminReply ? <div className="bg-white p-4 rounded-xl border border-blue-100 text-slate-700 whitespace-pre-wrap leading-relaxed shadow-sm text-sm lg:text-base">{selectedApp.adminReply}</div> : <div className="text-center py-6 text-blue-400 text-sm bg-white/50 rounded-xl border border-dashed border-blue-200">관리자가 내용을 확인 중입니다.<br/>잠시만 기다려주세요.</div>}
+                                    </section>
+                                </div>
+                                <div className="space-y-4 lg:space-y-6">
+                                    <section className="bg-white p-4 lg:p-6 rounded-2xl border border-slate-200 shadow-sm">
+                                        <h4 className="font-bold text-slate-700 mb-4 flex items-center gap-2 border-b border-slate-100 pb-2"><CreditCard size={18} className="text-slate-400" /> 결제 진행</h4>
+                                        {selectedApp.paymentAmount ? (
+                                            <div className="space-y-4">
+                                                <div className="flex justify-between items-end bg-slate-50 p-4 rounded-xl border border-slate-100"><span className="text-sm font-medium text-slate-500">결제 요청 금액</span><span className="text-2xl font-black text-indigo-600">{selectedApp.paymentAmount.toLocaleString()}원</span></div>
+                                                {selectedApp.isPaid ? <div className="bg-green-50 text-green-700 p-4 rounded-xl font-bold text-center flex items-center justify-center gap-2 border border-green-100"><CheckCircle size={20} /> 결제가 완료되었습니다.</div> : (
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <button onClick={() => handlePayment('BankTransfer')} className="py-3 px-2 lg:px-4 border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-indigo-500 transition-all text-xs lg:text-sm font-bold text-slate-600 break-keep">무통장 입금</button>
+                                                        <button onClick={() => handlePayment('VirtualAccount')} className="py-3 px-2 lg:px-4 border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-indigo-500 transition-all text-xs lg:text-sm font-bold text-slate-600 break-keep">계좌이체</button>
+                                                        <button onClick={() => handlePayment('CreditCard')} className="py-3 px-2 lg:px-4 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all text-xs lg:text-sm font-bold shadow-lg shadow-indigo-200 break-keep">신용카드</button>
+                                                        <button onClick={() => handlePayment('PayPal')} className="py-3 px-2 lg:px-4 bg-[#003087] text-white rounded-xl hover:bg-[#00256b] transition-all text-xs lg:text-sm font-bold shadow-lg shadow-blue-200 break-keep">PayPal</button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ) : <div className="text-center py-8 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-slate-400 text-sm"><DollarSign size={24} className="mx-auto mb-2 opacity-50" />금액 산정 중입니다.</div>}
+                                    </section>
+                                     <section className="bg-white p-4 lg:p-6 rounded-2xl border border-slate-200 shadow-sm">
+                                        <div className="flex justify-between items-center mb-4 border-b border-slate-100 pb-2">
+                                            <h4 className="font-bold text-slate-700 flex items-center gap-2 text-sm lg:text-base"><Paperclip size={18} className="text-slate-400" /> 파일 업로드 <span className="text-xs font-normal text-slate-400 ml-1 bg-slate-100 px-2 py-0.5 rounded-full">{selectedApp.attachments?.length || 0}/10</span></h4>
+                                            <label className={`cursor-pointer px-3 py-1.5 bg-slate-800 text-white text-xs font-bold rounded-lg hover:bg-slate-700 transition-colors flex items-center gap-2 ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                                                {uploading ? <RefreshCw size={12} className="animate-spin"/> : <Upload size={12} />} 파일 추가
+                                                <input type="file" multiple className="hidden" onChange={handleFileUpload} accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.hwp" />
+                                            </label>
+                                        </div>
+                                        <div className="space-y-2 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
+                                            {selectedApp.attachments && selectedApp.attachments.length > 0 ? selectedApp.attachments.map(file => (
+                                                <div key={file.id} className="flex justify-between items-center p-3 bg-slate-50 rounded-lg border border-slate-100 group hover:border-indigo-200 transition-colors">
+                                                    <div className="flex items-center gap-3 overflow-hidden">
+                                                        <div className={`p-2 rounded-lg ${file.uploadedBy === 'admin' ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}><FileText size={16} /></div>
+                                                        <div className="truncate"><p className="text-sm font-medium text-slate-700 truncate max-w-[150px]">{file.name}</p><p className="text-[10px] text-slate-400">{(file.size / 1024).toFixed(1)}KB • {new Date(file.createdAt).toLocaleDateString()} {file.uploadedBy === 'admin' && <span className="ml-1 text-red-500 font-bold">Admin</span>}</p></div>
+                                                    </div>
+                                                    <div className="flex gap-1">
+                                                        <a href={file.data} download={file.name} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Download size={16} /></a>
+                                                        {file.uploadedBy === 'user' && <button onClick={() => handleDeleteFile(file.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={16} /></button>}
+                                                    </div>
+                                                </div>
+                                            )) : <div className="text-center py-8 border-2 border-dashed border-slate-100 rounded-xl bg-slate-50/50"><p className="text-sm text-slate-400">업로드된 파일이 없습니다.</p></div>}
+                                        </div>
+                                    </section>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        /* EMPTY STATE 코드 */
+                        <div className="flex flex-col items-center justify-center text-slate-300 gap-6 bg-slate-50 p-4 min-h-full">
+                            <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-sm border border-slate-100">
+                                <LayoutDashboard size={48} className="text-slate-200" />
+                            </div>
+                            <div className="text-center space-y-2">
+                                <h3 className="text-xl font-bold text-slate-700">온라인 업무 관리</h3>
+                                <p className="text-slate-500 text-sm lg:text-base">좌측 목록에서 진행중인 업무를 선택하거나<br/>새로운 업무를 신청해주세요.</p>
+                            </div>
+                            <button 
+                                onClick={() => setIsCreating(true)}
+                                className="px-8 py-4 bg-indigo-600 text-white rounded-full font-bold shadow-xl hover:bg-indigo-700 transition-all hover:-translate-y-1 flex items-center gap-2"
+                            >
+                                <Plus size={20} /> 새 업무 신청하기
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    </div>
+);
