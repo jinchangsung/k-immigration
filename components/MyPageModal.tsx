@@ -50,13 +50,11 @@ const MyPageModal: React.FC<MyPageModalProps> = ({ isOpen, onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
-            
-            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-0 md:p-4 bg-black/70 backdrop-blur-sm">
+            <div className="bg-white md:rounded-2xl w-full md:max-w-4xl h-full md:max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
                 
                 {/* Header */}
-                <div className="bg-slate-900 p-6 flex justify-between items-center text-white shrink-0">
+                <div className="bg-slate-900 p-4 md:p-6 flex justify-between items-center text-white shrink-0">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
                             <User size={20} />
@@ -72,7 +70,7 @@ const MyPageModal: React.FC<MyPageModalProps> = ({ isOpen, onClose }) => {
                 </div>
 
                 {/* Body */}
-                <div className="flex-1 overflow-y-auto p-6 bg-slate-50">
+                <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50">
                     
                     <div className="flex justify-between items-center mb-4">
                         <h4 className="font-bold text-slate-700 text-lg">진행 중인 민원</h4>
@@ -89,13 +87,13 @@ const MyPageModal: React.FC<MyPageModalProps> = ({ isOpen, onClose }) => {
                             신청하신 민원 내역이 없습니다.
                         </div>
                     ) : (
-                        <div className="space-y-6">
+                        <div className="space-y-4 md:space-y-6">
                             {consultations.map((request) => {
                                 const currentIndex = getStatusIndex(request.processStatus || 'REQUESTED');
 
                                 return (
-                                    <div key={request.id} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                                        <div className="flex justify-between items-start mb-6 border-b border-slate-100 pb-4">
+                                    <div key={request.id} className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 md:p-6">
+                                        <div className="flex flex-col md:flex-row justify-between items-start mb-6 border-b border-slate-100 pb-4 gap-2 md:gap-0">
                                             <div>
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-bold rounded">
@@ -111,7 +109,8 @@ const MyPageModal: React.FC<MyPageModalProps> = ({ isOpen, onClose }) => {
                                                         : request.content.split('\n')[0]}
                                                 </h5>
                                             </div>
-                                            <div className="text-right">
+                                            <div className="text-right w-full md:w-auto flex justify-between md:block">
+                                                <div className="md:hidden text-xs text-slate-400">현재 상태</div>
                                                 <div className="text-sm font-bold text-blue-600">
                                                     {procedureSteps[currentIndex].label} 단계
                                                 </div>
@@ -119,41 +118,43 @@ const MyPageModal: React.FC<MyPageModalProps> = ({ isOpen, onClose }) => {
                                         </div>
 
                                         {/* Status Tracker (8 Steps) */}
-                                        <div className="relative">
-                                            {/* Progress Bar Background */}
-                                            <div className="absolute top-5 left-0 w-full h-1 bg-slate-100 rounded-full z-0"></div>
-                                            
-                                            {/* Progress Bar Active */}
-                                            <div 
-                                                className="absolute top-5 left-0 h-1 bg-blue-500 rounded-full z-0 transition-all duration-500"
-                                                style={{ width: `${(currentIndex / (procedureSteps.length - 1)) * 100}%` }}
-                                            ></div>
+                                        <div className="relative overflow-x-auto pb-4">
+                                            <div className="min-w-[500px] px-2">
+                                                {/* Progress Bar Background */}
+                                                <div className="absolute top-5 left-0 w-full h-1 bg-slate-100 rounded-full z-0"></div>
+                                                
+                                                {/* Progress Bar Active */}
+                                                <div 
+                                                    className="absolute top-5 left-0 h-1 bg-blue-500 rounded-full z-0 transition-all duration-500"
+                                                    style={{ width: `${(currentIndex / (procedureSteps.length - 1)) * 100}%` }}
+                                                ></div>
 
-                                            <div className="flex justify-between relative z-10">
-                                                {procedureSteps.map((step, idx) => {
-                                                    const isCompleted = idx <= currentIndex;
-                                                    const isCurrent = idx === currentIndex;
+                                                <div className="flex justify-between relative z-10">
+                                                    {procedureSteps.map((step, idx) => {
+                                                        const isCompleted = idx <= currentIndex;
+                                                        const isCurrent = idx === currentIndex;
 
-                                                    return (
-                                                        <div key={idx} className="flex flex-col items-center gap-2 group w-16">
-                                                            <div 
-                                                                className={`
-                                                                    w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300
-                                                                    ${isCurrent 
-                                                                        ? 'bg-blue-600 border-blue-600 text-white scale-110 shadow-lg shadow-blue-500/30' 
-                                                                        : isCompleted 
-                                                                            ? 'bg-white border-blue-500 text-blue-500' 
-                                                                            : 'bg-white border-slate-200 text-slate-300'}
-                                                                `}
-                                                            >
-                                                                <step.icon size={isCurrent ? 20 : 18} />
+                                                        return (
+                                                            <div key={idx} className="flex flex-col items-center gap-2 group w-16">
+                                                                <div 
+                                                                    className={`
+                                                                        w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300
+                                                                        ${isCurrent 
+                                                                            ? 'bg-blue-600 border-blue-600 text-white scale-110 shadow-lg shadow-blue-500/30' 
+                                                                            : isCompleted 
+                                                                                ? 'bg-white border-blue-500 text-blue-500' 
+                                                                                : 'bg-white border-slate-200 text-slate-300'}
+                                                                    `}
+                                                                >
+                                                                    <step.icon size={isCurrent ? 20 : 18} />
+                                                                </div>
+                                                                <div className={`text-[10px] font-bold text-center ${isCurrent ? 'text-blue-600' : isCompleted ? 'text-slate-600' : 'text-slate-300'}`}>
+                                                                    {step.label}
+                                                                </div>
                                                             </div>
-                                                            <div className={`text-[10px] font-bold text-center ${isCurrent ? 'text-blue-600' : isCompleted ? 'text-slate-600' : 'text-slate-300'}`}>
-                                                                {step.label}
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                })}
+                                                        );
+                                                    })}
+                                                </div>
                                             </div>
                                         </div>
 
