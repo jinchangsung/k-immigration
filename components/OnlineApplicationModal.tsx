@@ -228,8 +228,8 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
             <div className="bg-white md:rounded-2xl w-full md:max-w-6xl h-full md:h-[90vh] flex overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
                 
                 {/* Left Sidebar: Application List */}
-                {/* On Mobile: Hidden if detail view is active */}
-                <div className={`w-full md:w-80 bg-slate-50 border-r border-slate-200 flex flex-col shrink-0 ${showDetail ? 'hidden md:flex' : 'flex'}`}>
+                {/* Removed static 'flex' to prevent conflict with 'hidden' */}
+                <div className={`w-full md:w-80 bg-slate-50 border-r border-slate-200 flex-col shrink-0 ${showDetail ? 'hidden md:flex' : 'flex'}`}>
                     <div className="p-5 border-b border-slate-200 flex justify-between items-center bg-white sticky top-0 z-10">
                         <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
                             <LayoutDashboard className="text-indigo-600" />
@@ -297,8 +297,8 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
                 </div>
 
                 {/* Main Content Area */}
-                {/* On Mobile: Hidden if list view is active */}
-                <div className={`flex-1 flex flex-col bg-white overflow-hidden ${showList ? 'hidden md:flex' : 'flex'}`}>
+                {/* Removed static 'flex' to prevent conflict with 'hidden' */}
+                <div className={`flex-1 flex-col bg-white overflow-hidden ${showList ? 'hidden md:flex' : 'flex'}`}>
                     <div className="bg-white border-b border-slate-200 p-4 flex justify-between items-center shrink-0">
                         <div className="flex items-center gap-2">
                             {/* Mobile Back Button */}
