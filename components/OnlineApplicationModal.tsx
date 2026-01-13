@@ -245,14 +245,14 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
                 
                 {/* 
                   Left Sidebar: Application List 
-                  Visibility Logic:
-                  - Mobile: Hidden if viewing details (isMobileDetailView is true)
-                  - Desktop: Always visible (lg:flex)
+                  Visibility Logic (Using !important to force visibility):
+                  - Mobile: Hidden if viewing details (isMobileDetailView is true) -> !hidden
+                  - Desktop: Always visible -> lg:!flex
                 */}
                 <div className={`
                     bg-slate-50 border-r border-slate-200 shrink-0 flex-col
                     w-full lg:w-80 h-full
-                    ${isMobileDetailView ? 'hidden lg:flex' : 'flex'}
+                    ${isMobileDetailView ? '!hidden lg:!flex' : 'flex'}
                 `}>
                     <div className="p-5 border-b border-slate-200 flex justify-between items-center bg-white sticky top-0 z-10 shrink-0">
                         <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
@@ -323,14 +323,15 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
 
                 {/* 
                   Main Content Area 
-                  Visibility Logic:
-                  - Mobile: Visible ONLY if viewing details (isMobileDetailView is true)
-                  - Desktop: Always visible (hidden lg:flex overrides hidden)
+                  Visibility Logic (Using !important to force visibility):
+                  - Mobile: Visible ONLY if viewing details (isMobileDetailView is true) -> flex
+                  - Mobile: Hidden if NOT viewing details -> !hidden
+                  - Desktop: Always visible -> lg:!flex
                 */}
                 <div className={`
                     bg-white overflow-hidden flex-col
                     w-full lg:flex-1 h-full
-                    ${isMobileDetailView ? 'flex' : 'hidden lg:flex'}
+                    ${isMobileDetailView ? 'flex' : '!hidden lg:!flex'}
                 `}>
                     <div className="bg-white border-b border-slate-200 p-4 flex justify-between items-center shrink-0">
                         <div className="flex items-center gap-2">
