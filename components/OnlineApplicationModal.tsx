@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { X, Upload, FileText, CheckCircle, Clock, CreditCard, Send, RefreshCw, Paperclip, AlertCircle, DollarSign, Download, Trash2, Plus, ChevronRight, LayoutDashboard, Search } from 'lucide-react';
+import { X, Upload, FileText, CheckCircle, Clock, CreditCard, Send, RefreshCw, Paperclip, AlertCircle, DollarSign, Download, Trash2, Plus, ChevronRight, LayoutDashboard, Search, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { dbService } from '../services/dbService';
 import { ConsultationRequest, ProcessStatus, Attachment } from '../types';
@@ -145,7 +145,7 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!selectedApp || !e.target.files || e.target.files.length === 0) return;
         
-        const files = Array.from(e.target.files);
+        const files: File[] = Array.from(e.target.files);
         const currentCount = selectedApp.attachments?.length || 0;
         
         if (currentCount + files.length > 10) {
@@ -219,24 +219,34 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
 
     if (!isOpen) return null;
 
+    // Helper to determine view state on mobile
+    const showList = !selectedApp && !isCreating;
+    const showDetail = selectedApp || isCreating;
+
     return (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl w-full max-w-6xl h-[90vh] flex overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-0 md:p-4 bg-black/70 backdrop-blur-sm">
+            <div className="bg-white md:rounded-2xl w-full md:max-w-6xl h-full md:h-[90vh] flex overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
                 
                 {/* Left Sidebar: Application List */}
-                <div className="w-80 bg-slate-50 border-r border-slate-200 flex flex-col shrink-0">
+                {/* On Mobile: Hidden if detail view is active */}
+                <div className={`w-full md:w-80 bg-slate-50 border-r border-slate-200 flex flex-col shrink-0 ${showDetail ? 'hidden md:flex' : 'flex'}`}>
                     <div className="p-5 border-b border-slate-200 flex justify-between items-center bg-white sticky top-0 z-10">
                         <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
                             <LayoutDashboard className="text-indigo-600" />
                             업무 목록
                         </h3>
-                        <button 
-                            onClick={() => { setIsCreating(true); setSelectedApp(null); }}
-                            className="p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm flex items-center gap-1 text-xs font-bold"
-                            title="새 업무 신청"
-                        >
-                            <Plus size={14} /> 신청
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <button 
+                                onClick={() => { setIsCreating(true); setSelectedApp(null); }}
+                                className="p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm flex items-center gap-1 text-xs font-bold"
+                                title="새 업무 신청"
+                            >
+                                <Plus size={14} /> 신청
+                            </button>
+                            <button onClick={onClose} className="md:hidden p-2 text-slate-400 hover:bg-slate-100 rounded-lg">
+                                <X size={20} />
+                            </button>
+                        </div>
                     </div>
                     <div className="flex-1 overflow-y-auto p-3 space-y-2">
                         {applications.length === 0 ? (
@@ -256,11 +266,11 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
                                     }`}
                                 >
                                     <div className="flex justify-between items-start mb-1">
-                                        <span className="font-bold text-slate-800 text-sm truncate max-w-[120px]">{app.serviceType || '일반상담'}</span>
-                                        {/* Delete Button (Visible on Hover) */}
+                                        <span className="font-bold text-slate-800 text-sm truncate max-w-[180px] md:max-w-[120px]">{app.serviceType || '일반상담'}</span>
+                                        {/* Delete Button */}
                                         <div 
                                             onClick={(e) => handleDeleteApplication(app.id, e)}
-                                            className="absolute top-2 right-2 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all z-20"
+                                            className="absolute top-2 right-2 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg opacity-100 md:opacity-0 group-hover:opacity-100 transition-all z-20"
                                             title="삭제"
                                         >
                                             <Trash2 size={14} />
@@ -287,11 +297,21 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
                 </div>
 
                 {/* Main Content Area */}
-                <div className="flex-1 flex flex-col bg-white overflow-hidden">
+                {/* On Mobile: Hidden if list view is active */}
+                <div className={`flex-1 flex flex-col bg-white overflow-hidden ${showList ? 'hidden md:flex' : 'flex'}`}>
                     <div className="bg-white border-b border-slate-200 p-4 flex justify-between items-center shrink-0">
-                        <h2 className="font-bold text-xl text-slate-800 flex items-center gap-2">
-                            {isCreating ? <><Plus size={24} className="text-indigo-600"/> 새로운 업무 신청</> : selectedApp ? <><FileText size={24} className="text-indigo-600"/> 상세 내역 조회</> : '업무를 선택해주세요'}
-                        </h2>
+                        <div className="flex items-center gap-2">
+                            {/* Mobile Back Button */}
+                            <button 
+                                onClick={() => { setSelectedApp(null); setIsCreating(false); }}
+                                className="md:hidden p-2 -ml-2 text-slate-500 hover:bg-slate-50 rounded-full"
+                            >
+                                <ArrowLeft size={20} />
+                            </button>
+                            <h2 className="font-bold text-lg md:text-xl text-slate-800 flex items-center gap-2 truncate">
+                                {isCreating ? <><Plus size={24} className="text-indigo-600 hidden md:block"/> 새로운 업무 신청</> : selectedApp ? <><FileText size={24} className="text-indigo-600 hidden md:block"/> 상세 내역 조회</> : '업무를 선택해주세요'}
+                            </h2>
+                        </div>
                         <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
                             <X size={24} className="text-slate-500" />
                         </button>
@@ -299,15 +319,15 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
 
                     {isCreating ? (
                         /* CREATE NEW APPLICATION FORM */
-                        <div className="flex-1 overflow-y-auto p-8 flex justify-center bg-slate-50">
-                            <div className="w-full max-w-2xl space-y-8 animate-in fade-in slide-in-from-bottom-4">
-                                <div className="text-center mb-8">
-                                    <h3 className="text-2xl font-bold text-slate-800 mb-2">어떤 업무를 도와드릴까요?</h3>
-                                    <p className="text-slate-500">원하시는 상품을 선택하고 문의 내용을 입력해주세요.</p>
+                        <div className="flex-1 overflow-y-auto p-4 md:p-8 flex justify-center bg-slate-50">
+                            <div className="w-full max-w-2xl space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4">
+                                <div className="text-center mb-4 md:mb-8">
+                                    <h3 className="text-xl md:text-2xl font-bold text-slate-800 mb-2">어떤 업무를 도와드릴까요?</h3>
+                                    <p className="text-sm md:text-base text-slate-500">원하시는 상품을 선택하고 문의 내용을 입력해주세요.</p>
                                 </div>
 
                                 <form onSubmit={handleCreateApplication} className="space-y-6">
-                                    <div className="space-y-6 bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
+                                    <div className="space-y-6 bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm">
                                         {/* Step 1: Category */}
                                         <div>
                                             <label className="block text-sm font-bold text-slate-700 mb-2">1. 카테고리 선택</label>
@@ -317,7 +337,7 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
                                                         key={cat.id}
                                                         type="button"
                                                         onClick={() => setNewAppServiceId(cat.id)}
-                                                        className={`p-3 rounded-xl text-sm font-bold border transition-all ${
+                                                        className={`p-3 rounded-xl text-xs md:text-sm font-bold border transition-all ${
                                                             newAppServiceId === cat.id 
                                                             ? 'bg-indigo-600 text-white border-indigo-600 shadow-md' 
                                                             : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-indigo-300 hover:bg-white'
@@ -336,7 +356,7 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
                                                 <select 
                                                     value={newAppProduct}
                                                     onChange={(e) => setNewAppProduct(e.target.value)}
-                                                    className="w-full p-4 rounded-xl border border-slate-300 bg-white font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none appearance-none"
+                                                    className="w-full p-4 rounded-xl border border-slate-300 bg-white font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none appearance-none text-sm md:text-base"
                                                 >
                                                     {newAppSubMenus.length > 0 ? (
                                                         newAppSubMenus.map(sub => (
@@ -360,7 +380,7 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
                                                     <select 
                                                         value={newAppDetailOption}
                                                         onChange={(e) => setNewAppDetailOption(e.target.value)}
-                                                        className="w-full p-4 rounded-xl border border-slate-300 bg-white font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none appearance-none"
+                                                        className="w-full p-4 rounded-xl border border-slate-300 bg-white font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none appearance-none text-sm md:text-base"
                                                     >
                                                         {availableDetailOptions.map((opt, idx) => (
                                                             <option key={idx} value={opt.value}>{opt.label}</option>
@@ -382,7 +402,7 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
                                                 onChange={(e) => setNewAppContent(e.target.value)}
                                                 rows={5}
                                                 placeholder="상담받고 싶은 내용을 자유롭게 적어주세요."
-                                                className="w-full p-4 rounded-xl border border-slate-300 bg-white resize-none focus:ring-2 focus:ring-indigo-500 outline-none"
+                                                className="w-full p-4 rounded-xl border border-slate-300 bg-white resize-none focus:ring-2 focus:ring-indigo-500 outline-none text-sm md:text-base"
                                             ></textarea>
                                         </div>
                                     </div>
@@ -407,53 +427,55 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
                         </div>
                     ) : selectedApp ? (
                         /* EXISTING APPLICATION DETAILS */
-                        <div className="flex-1 overflow-y-auto p-8 bg-slate-50/50">
+                        <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-50/50">
                             
                             {/* 1. Status Tracker */}
-                            <div className="mb-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                            <div className="mb-6 md:mb-8 bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-sm">
                                 <h4 className="font-bold text-slate-700 mb-6 flex items-center gap-2">
                                     <ActivityIcon status={selectedApp.processStatus} /> 
                                     진행 상태 : <span className="text-indigo-600">{procedureSteps[getStatusIndex(selectedApp.processStatus)]}</span>
                                 </h4>
-                                <div className="relative px-4">
-                                    <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-100 -translate-y-1/2 rounded-full z-0"></div>
-                                    <div 
-                                        className="absolute top-1/2 left-0 h-1 bg-indigo-500 -translate-y-1/2 rounded-full z-0 transition-all duration-500"
-                                        style={{ width: `${(getStatusIndex(selectedApp.processStatus) / (procedureSteps.length - 1)) * 100}%` }}
-                                    ></div>
-                                    <div className="flex justify-between relative z-10">
-                                        {procedureSteps.map((step, idx) => {
-                                            const currentIdx = getStatusIndex(selectedApp.processStatus);
-                                            const isPassed = idx <= currentIdx;
-                                            const isCurrent = idx === currentIdx;
-                                            return (
-                                                <div key={idx} className="flex flex-col items-center gap-2">
-                                                    <div className={`w-4 h-4 rounded-full border-2 transition-all ${
-                                                        isCurrent ? 'bg-indigo-600 border-indigo-600 scale-150 shadow-md' : 
-                                                        isPassed ? 'bg-indigo-600 border-indigo-600' : 'bg-white border-slate-300'
-                                                    }`}></div>
-                                                    <span className={`text-[10px] font-bold mt-1 ${isCurrent ? 'text-indigo-600' : isPassed ? 'text-slate-600' : 'text-slate-300'}`}>
-                                                        {step}
-                                                    </span>
-                                                </div>
-                                            )
-                                        })}
+                                <div className="relative px-2 md:px-4 overflow-x-auto pb-2">
+                                    <div className="min-w-[500px]">
+                                        <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-100 -translate-y-1/2 rounded-full z-0"></div>
+                                        <div 
+                                            className="absolute top-1/2 left-0 h-1 bg-indigo-500 -translate-y-1/2 rounded-full z-0 transition-all duration-500"
+                                            style={{ width: `${(getStatusIndex(selectedApp.processStatus) / (procedureSteps.length - 1)) * 100}%` }}
+                                        ></div>
+                                        <div className="flex justify-between relative z-10">
+                                            {procedureSteps.map((step, idx) => {
+                                                const currentIdx = getStatusIndex(selectedApp.processStatus);
+                                                const isPassed = idx <= currentIdx;
+                                                const isCurrent = idx === currentIdx;
+                                                return (
+                                                    <div key={idx} className="flex flex-col items-center gap-2 min-w-[40px]">
+                                                        <div className={`w-4 h-4 rounded-full border-2 transition-all ${
+                                                            isCurrent ? 'bg-indigo-600 border-indigo-600 scale-150 shadow-md' : 
+                                                            isPassed ? 'bg-indigo-600 border-indigo-600' : 'bg-white border-slate-300'
+                                                        }`}></div>
+                                                        <span className={`text-[10px] font-bold mt-1 whitespace-nowrap ${isCurrent ? 'text-indigo-600' : isPassed ? 'text-slate-600' : 'text-slate-300'}`}>
+                                                            {step}
+                                                        </span>
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
                                 {/* Left Column: Info & Chat */}
-                                <div className="space-y-6">
+                                <div className="space-y-4 md:space-y-6">
                                     {/* Application Info */}
-                                    <section className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                                    <section className="bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-sm">
                                         <h4 className="font-bold text-slate-700 mb-4 flex items-center gap-2 border-b border-slate-100 pb-2">
                                             <FileText size={18} className="text-slate-400" /> 신청 정보
                                         </h4>
                                         <div className="space-y-4 text-sm text-slate-600">
                                             <div className="flex justify-between">
                                                 <span className="font-medium text-slate-500">상품명</span>
-                                                <span className="font-bold text-slate-800 text-base">{selectedApp.serviceType}</span>
+                                                <span className="font-bold text-slate-800 text-base text-right ml-4">{selectedApp.serviceType}</span>
                                             </div>
                                             <div className="flex justify-between">
                                                 <span className="font-medium text-slate-500">신청인</span>
@@ -469,12 +491,12 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
                                     </section>
 
                                     {/* Admin Reply */}
-                                    <section className="bg-blue-50 p-6 rounded-2xl border border-blue-100 shadow-sm">
+                                    <section className="bg-blue-50 p-4 md:p-6 rounded-2xl border border-blue-100 shadow-sm">
                                         <h4 className="font-bold text-blue-800 mb-4 flex items-center gap-2">
                                             <CheckCircle size={18} /> 관리자 답변
                                         </h4>
                                         {selectedApp.adminReply ? (
-                                            <div className="bg-white p-4 rounded-xl border border-blue-100 text-slate-700 whitespace-pre-wrap leading-relaxed shadow-sm">
+                                            <div className="bg-white p-4 rounded-xl border border-blue-100 text-slate-700 whitespace-pre-wrap leading-relaxed shadow-sm text-sm md:text-base">
                                                 {selectedApp.adminReply}
                                             </div>
                                         ) : (
@@ -486,9 +508,9 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
                                 </div>
 
                                 {/* Right Column: Payment & Files */}
-                                <div className="space-y-6">
+                                <div className="space-y-4 md:space-y-6">
                                     {/* Payment Section */}
-                                    <section className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                                    <section className="bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-sm">
                                         <h4 className="font-bold text-slate-700 mb-4 flex items-center gap-2 border-b border-slate-100 pb-2">
                                             <CreditCard size={18} className="text-slate-400" /> 결제 진행
                                         </h4>
@@ -508,16 +530,16 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
                                                     </div>
                                                 ) : (
                                                     <div className="grid grid-cols-2 gap-3">
-                                                        <button onClick={() => handlePayment('BankTransfer')} className="py-3 px-4 border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-indigo-500 transition-all text-sm font-bold text-slate-600">
+                                                        <button onClick={() => handlePayment('BankTransfer')} className="py-3 px-2 md:px-4 border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-indigo-500 transition-all text-xs md:text-sm font-bold text-slate-600 break-keep">
                                                             무통장 입금
                                                         </button>
-                                                        <button onClick={() => handlePayment('VirtualAccount')} className="py-3 px-4 border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-indigo-500 transition-all text-sm font-bold text-slate-600">
+                                                        <button onClick={() => handlePayment('VirtualAccount')} className="py-3 px-2 md:px-4 border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-indigo-500 transition-all text-xs md:text-sm font-bold text-slate-600 break-keep">
                                                             계좌이체
                                                         </button>
-                                                        <button onClick={() => handlePayment('CreditCard')} className="py-3 px-4 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all text-sm font-bold shadow-lg shadow-indigo-200">
-                                                            신용카드 결제
+                                                        <button onClick={() => handlePayment('CreditCard')} className="py-3 px-2 md:px-4 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all text-xs md:text-sm font-bold shadow-lg shadow-indigo-200 break-keep">
+                                                            신용카드
                                                         </button>
-                                                        <button onClick={() => handlePayment('PayPal')} className="py-3 px-4 bg-[#003087] text-white rounded-xl hover:bg-[#00256b] transition-all text-sm font-bold shadow-lg shadow-blue-200">
+                                                        <button onClick={() => handlePayment('PayPal')} className="py-3 px-2 md:px-4 bg-[#003087] text-white rounded-xl hover:bg-[#00256b] transition-all text-xs md:text-sm font-bold shadow-lg shadow-blue-200 break-keep">
                                                             PayPal
                                                         </button>
                                                     </div>
@@ -532,9 +554,9 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
                                     </section>
 
                                     {/* File Upload Section */}
-                                    <section className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                                    <section className="bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-sm">
                                         <div className="flex justify-between items-center mb-4 border-b border-slate-100 pb-2">
-                                            <h4 className="font-bold text-slate-700 flex items-center gap-2">
+                                            <h4 className="font-bold text-slate-700 flex items-center gap-2 text-sm md:text-base">
                                                 <Paperclip size={18} className="text-slate-400" /> 파일 업로드
                                                 <span className="text-xs font-normal text-slate-400 ml-1 bg-slate-100 px-2 py-0.5 rounded-full">
                                                     {selectedApp.attachments?.length || 0}/10
@@ -598,13 +620,13 @@ const OnlineApplicationModal: React.FC<OnlineApplicationModalProps> = ({ isOpen,
                             </div>
                         </div>
                     ) : (
-                        <div className="flex-1 flex flex-col items-center justify-center text-slate-300 gap-6 bg-slate-50">
+                        <div className="flex-1 flex flex-col items-center justify-center text-slate-300 gap-6 bg-slate-50 p-4">
                             <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-sm border border-slate-100">
                                 <LayoutDashboard size={48} className="text-slate-200" />
                             </div>
                             <div className="text-center space-y-2">
                                 <h3 className="text-xl font-bold text-slate-700">온라인 업무 관리</h3>
-                                <p className="text-slate-500">좌측 목록에서 진행중인 업무를 선택하거나<br/>새로운 업무를 신청해주세요.</p>
+                                <p className="text-slate-500 text-sm md:text-base">좌측 목록에서 진행중인 업무를 선택하거나<br/>새로운 업무를 신청해주세요.</p>
                             </div>
                             <button 
                                 onClick={() => setIsCreating(true)}
